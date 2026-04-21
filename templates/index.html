@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NoSQL Python project</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+
+<h1>NoSQL Python project</h1>
+<h2>Gym membership management system</h2>
+
+<button onclick="toggleMenu()">Switch views</button>
+<div id="customerMenu">
+    <h3>Customers</h3>
+    <button onclick="showSection('add')">Add customer</button>
+    <button onclick="showSection('edit')">Edit customer</button>
+    <button onclick="showSection('delete')">Delete customer</button>
+    <button onclick="showSection('find')">Find customer</button>
+    <button onclick="showSection('list')">Find all customers</button>
+</div>
+
+<div id="membershipMenu" class="hidden">
+    <h3>Memberships</h3>
+    <button onclick="showSection('addMember')">Add membership</button>
+    <button onclick="showSection('editMember')">Edit membership</button>
+    <button onclick="showSection('deleteMember')">Delete membership</button>
+    <button onclick="showSection('findMember')" >Find membership</button>
+    <button onclick="showSection('listMember')">Find all memberships</button>
+</div>
+
+<!--CUSTOMER CRUDS-->
+
+<div id="add" class="hidden view">
+    <h3>Add customer</h3>
+    <form action="/add_customer" method="POST">
+        <input type="text" name="firstname" placeholder="First name">
+        <input type="text" name="lastname" placeholder="Last name">
+        <input type="text" name="email" placeholder="Email">
+        <input type="text" name="phone" placeholder="Phone number">
+        <button type="submit">Add Customer</button>
+    </form>
+</div>
+
+<div id="edit" class="hidden view">
+    <h3>Edit customer</h3>
+    <form action="/edit_customer" method="POST">
+        <select id="customerSelect">
+            <option value="">Select customer</option>
+            {% for customer_edit in customers %}
+                <option 
+                value="{{ customer_edit._id }}"
+                data-firstname="{{customer_edit.firstname}}"
+                data-lastname="{{customer_edit.lastname}}"
+                data-email="{{customer_edit.email}}"
+                data-phone="{{customer_edit.phone}}" >
+                    {{ customer_edit.firstname }} {{ customer_edit.lastname }}
+                </option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="customerID" id="customerIdEdit">
+        <input type="text" name="firstname" id="customerfirstNameEdit" placeholder="First name">
+        <input type="text" name="lastname" id="customerlastNameEdit" placeholder="Last name">
+        <input type="text" name="phone" id="customerPhoneEdit" placeholder="Phone">
+        <input type="text" name="email" id="customerEmailEdit" placeholder="Email">
+        <button type="submit">Update customer</button>
+    </form>
+</div>
+
+<div id="delete" class="hidden view">
+    <h3>Delete customer</h3>
+    <form action="/delete_customer" method="POST">
+        <input type="text" name="customerID" placeholder="Customer ID">
+        <button type="submit">Delete customer</button>
+    </form>
+</div>
+
+<div id="find" class="view {{ '' if single_customer else 'hidden' }}">
+    <h3>Find customer by ID</h3>
+    <form action="/find_customer" method="POST">
+        <input type="text" name="customerID" placeholder="Customer ID">
+        <button type="submit">Find Customer</button>
+    </form>
+    {% if single_customer %}
+        <p>
+            <strong>
+            {{ single_customer.firstname }} 
+            {{ single_customer.lastname }}
+            </strong>
+        </p>
+        <p>ID: {{ single_customer._id }}</p>
+        <p>Email: {{ single_customer.email }}</p>
+        <p>Phone: {{ single_customer.phone }}</p>
+        {% if customer_membership %}
+        <p><strong>Membership ID: </strong>{{ customer_membership.membershipID }}</p>
+            <p>Price: {{ customer_membership.priceCategory }}</p>
+            <p>Active: {{ customer_membership.active }}</p>
+        {% else %}
+            <p><strong>Membership:</strong> None</p>
+        {% endif %}
+    {% endif %}
+</div>
+
+<div id="list" class="hidden view">
+    <h3>Customer List</h3>
+    <ul>
+        {% for customer in customers %}
+            <li>
+                <strong>
+                    {{ customer.firstname }} {{customer.lastname}}
+                </strong>
+            </li>
+                <p>ID: {{customer._id}}</p>
+                <p>
+                   Email: {{ customer.email}} 
+                </p>
+                <p>
+                   Phone: {{ customer.phone }}
+                </p>
+                <p>
+                    Membership ID: {{ customer.membershipID }}
+                </p>
+        {% endfor %}
+    </ul>
+</div>
+
+<!--MEMBERSHIP CRUDS-->
+
+<div id="addMember" class="hidden view">
+    <h3>Add Membership</h3>
+    <form action="/add_membership" method="POST">
+        <select name="priceCategory">
+            <option value="Student">Student</option>
+            <option value="Normal">Normal</option>
+            <option value="Pensioner">Pensioner</option>
+            <option value="Veteran">Veteran</option>
+        </select>
+        <input type="number" name="membershipID" placeholder="Membership ID (100-999)">
+        <input type="text" name="startDate" placeholder="Start Date">
+        <input type="text" name="endDate" placeholder="End Date">
+        <button type="submit">Add Membership</button>
+    </form>
+</div>
+
+<div id="editMember" class="hidden view">
+    <h3>Edit membership</h3>
+    <form action="/edit_membership" method="POST">
+        <select id="memberShipSelect">
+            <option value="">Select membership</option>
+            {% for membership_edit in memberships %}
+                <option 
+                value="{{ membership_edit._id }}"
+                data-membershipID="{{membership_edit.membershipID}}"
+                data-priceCategory="{{membership_edit.priceCategory}}"
+                data-startDate="{{membership_edit.startDate}}"
+                data-endDate="{{membership_edit.endDate}}"
+                data-active="{{membership_edit.active}}" >
+                    {{ membership_edit.membershipID }}
+                </option>
+            {% endfor %}
+        </select>       
+        <select id="priceCategory" name="priceCategory">
+            <option value="Student">Student</option>
+            <option value="Normal">Normal</option>
+            <option value="Pensioner">Pensioner</option>
+            <option value="Veteran">Veteran</option>
+        </select>
+        <input type="hidden" name="memberID" id="memberIdEdit">
+        <input type="number" name="membershipID" id="membershipIdEdit" placeholder="Membership ID (100-999)">
+        <input type="text" name="startDate" id="membershipStartDateEdit" placeholder="Start Date">
+        <input type="text" name="endDate" id="membershipEndDateEdit" placeholder="End Date">
+        <input type="checkbox" name="active" id="membershipActiveEdit" checked> Active membership
+        <button type="submit">Update membership status</button>
+    </form>
+</div>
+
+<div id="deleteMember" class="hidden view">
+    <h3>Delete membership</h3>
+    <form action="/delete_membership" method="POST">
+        <input type="text" name="membershipID" placeholder="Membership ID">
+        <button type="submit">Delete membership</button>
+    </form>
+</div>
+
+
+
+<div id="findMember" class="view {{ '' if single_membership else 'hidden' }}">
+    <h3>Find membership by ID</h3>
+    <form action="/find_membership" method="POST">
+        <input type="text" name="membershipID" placeholder="Membership ID">
+        <button type="submit">Find Membership</button>
+    </form>
+    {% if single_membership %}
+        <p>
+            <strong>{{ single_membership.membershipID }}</strong>
+        </p>
+        <p>ID: {{ single_membership._id }}</p>
+        <p>Price: {{ single_membership.priceCategory }}</p>
+        <p>Start: {{ single_membership.startDate }} End: {{ single_membership.endDate }}</p>
+        <p>Active: {{ single_membership.active }}</p>
+    {% if visit_logs %}
+        <p><strong>Visits:</strong></p>
+        <ul>
+            {% for log in visit_logs %}
+                <li>
+                    Entry: {{ log.entryTime }} 
+                    Exit: {{ log.exitTime }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p><strong>Visit logs:</strong> None</p>
+    {% endif %}
+    {% endif %}
+</div>
+
+<div id="listMember" class="hidden view">
+    <h3>Membership List</h3>
+    <ul>
+        {% for membership in memberships %}
+            <li>
+                <strong>
+                    {{ membership.membershipID }}
+                </strong>
+            </li>
+                <p>ID: {{ membership._id}}</p>
+                <p>
+                    Price: {{ membership.priceCategory}} 
+                </p>
+                <p>
+                    Start: {{ membership.startDate }} End: {{ membership.endDate }}
+                </p>
+                <p>
+                    Active: {{ membership.active }}
+                </p>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+
+    let showingCustomers = true;
+
+    document.getElementById("customerSelect").addEventListener("change", function () {
+        const selected = this.options[this.selectedIndex];
+        document.getElementById("customerIdEdit").value = selected.value;
+        document.getElementById("customerfirstNameEdit").value = selected.dataset.firstname || "";
+        document.getElementById("customerlastNameEdit").value = selected.dataset.lastname || "";
+        document.getElementById("customerEmailEdit").value = selected.dataset.email || "";
+        document.getElementById("customerPhoneEdit").value = selected.dataset.phone || "";
+    });
+
+    document.getElementById("memberShipSelect").addEventListener("change", function () {
+        const selected = this.options[this.selectedIndex];
+        document.getElementById("memberIdEdit").value = selected.value;
+        document.getElementById("membershipIdEdit").value = selected.dataset.membershipid;
+        document.getElementById("priceCategory").value = selected.dataset.pricecategory;
+        document.getElementById("membershipStartDateEdit").value = selected.dataset.startdate || "";
+        document.getElementById("membershipEndDateEdit").value = selected.dataset.enddate || "";
+        document.getElementById("membershipActiveEdit").checked = selected.dataset.active.toUpperCase() === "TRUE";
+    });
+
+    function showSection(sectionId) {
+        document.querySelectorAll('.view').forEach(div => {
+            div.classList.add('hidden');
+        });
+        document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    function toggleMenu() {
+        showingSingleCustomer = false
+        document.querySelectorAll('.view').forEach(div => {
+            div.classList.add('hidden');
+        });
+        showingCustomers = !showingCustomers;
+
+        document.getElementById("customerMenu").style.display =
+            showingCustomers ? "block" : "none";
+
+        document.getElementById("membershipMenu").style.display =
+            showingCustomers ? "none" : "block";
+    }
+</script>
+
+</body>
+</html>
